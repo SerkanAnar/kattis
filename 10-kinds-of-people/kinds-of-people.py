@@ -1,7 +1,6 @@
 from collections import deque
 
 dirs = [(-1, 0), (1, 0), (0, -1), (0, 1)]
-
 r, c = map(int, input().strip().split()) # keep in mind that r and c are 1-indexed
 
 board = []
@@ -10,48 +9,37 @@ for _ in range(r):
     row = [int(x) for x in row]
     board.append(row)
 
-h, w = len(board), len(board[0])
+r, c = len(board), len(board[0])
+groups = [[-1]*c for _ in range(r)]
+curr_group = 0
 
-n = int(input().strip())
-queries = []
-for _ in range(n):
-    r1, c1, r2, c2 = map(int, input().strip().split())
-    queries.append((r1, c1, r2, c2))
-
-types = ('decimal', 'binary')
-for query in queries:
-    visited = [[False] * w for _ in range(h)]
-    result = None
-    source = (query[0]-1, query[1]-1)
-    target = (query[2]-1, query[3]-1)
-    found = False
-    for type_ in types:
-        visited = [[False] * w for _ in range(h)]
-        allowed = 1 if type_ == 'decimal' else 0
-        if board[source[0]][source[1]] != allowed:
+for i in range(r):
+    for j in range(c):
+        if groups[i][j] != -1:
             continue
-
-        queue = deque([source])
-        # queue.append(source)
-        visited[source[0]][source[1]] = True
-
+        queue = deque([(i, j)])
+        groups[i][j] = curr_group
         while queue:
-            s = queue.popleft() # (0, 0)
-            if s[0] == target[0] and s[1] == target[1]:
-                if found == True:
-                    result = None
-                else:
-                    found = True
-                    result = type_
-                break
-            # look in all allowed directions
-            # check boundaries
-            # check that they are allowed
-            # add to queue and mark as visited
+            s = queue.popleft()
             for dr, dc in dirs:
                 nr, nc = s[0] + dr, s[1] + dc
-                if (0 <= nr < h and 0 <= nc < w and board[nr][nc] == allowed and not visited[nr][nc]):
+                if 0 <= nr < r and 0 <= nc < c and groups[nr][nc] == -1 and board[nr][nc] == board[s[0]][s[1]]:
                     queue.append((nr, nc))
-                    visited[nr][nc] = True
+                    groups[nr][nc] = curr_group
+        curr_group += 1
 
-    print(result if result else "neither")
+n = int(input().strip())
+for _ in range(n):
+    r1, c1, r2, c2 = map(int, input().strip().split())
+    r1 -= 1
+    c1 -= 1
+    r2 -= 1
+    c2 -= 1
+
+    if groups[r1][c1] == groups[r2][c2]:
+        if board[r1][c1] == 1:
+            print("decimal")
+        else:
+            print("binary")
+    else:
+        print("neither")
